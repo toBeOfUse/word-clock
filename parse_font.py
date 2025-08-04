@@ -34,7 +34,7 @@ def parse_font():
         section_letters[current_section][letter].append(byte_value)
 
     # output a file that contains the pixels of each letter in the .a file
-    with open("./generated/curious.fred.json", mode="w+", encoding="utf-8") as outfile:
+    with open("./dist/curious.fred.json", mode="w+", encoding="utf-8") as outfile:
         out_dict = defaultdict(str)
         # note that the source file leaves out "Z", i guess bc it isn't used
         for letter in "ABCDEFGHIJKLMNOPQRSTUVWXY":

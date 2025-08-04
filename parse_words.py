@@ -47,7 +47,7 @@ def parse_words():
     for word, range in word_ranges.items():
         print(word, word_string[range[0] : range[1]], (range[0], range[1]))
 
-    with open("./generated/word_data.json", mode="w+", encoding="utf-8") as outfile:
+    with open("./dist/word_data.json", mode="w+", encoding="utf-8") as outfile:
         json.dump(
             {
                 # the words that the word clock should display, formatted as one
