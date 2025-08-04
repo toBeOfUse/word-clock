@@ -6,14 +6,21 @@ def parse_words():
     with open("./original/wordclock.data.a", encoding="utf-8") as font_file:
         lines = font_file.readlines()
 
-    # this will store the data that is read from the .a file
+    # these will store the data that is read from the .a file
     word_order: list[str] = []
     word_ranges: dict[str, tuple[int, int]] = {}
+    word_string = ""
 
+    # grab each important section of the .a file using its line numbers
+
+    # this section just gives the way the words are ordered in the following
+    # sections:
     word_order_lines = lines[14:64]
     for line in word_order_lines:
         word_order.append(line.split("=")[0].strip())
 
+    # these two sections store the position and length of each word in the
+    # clock:
     word_position_lines = lines[66 : 66 + len(word_order)]
     word_length_lines = lines[118 : 118 + len(word_order)]
     byte_prefix = "!byte "
@@ -29,21 +36,26 @@ def parse_words():
             int(pos_line_contents) + int(len_line_contents),
         )
 
+    # this section stores strings for the actual words that the clock should display:
     words_lines = lines[190:203]
-    word_string = ""
     for word_line in words_lines:
         word_line_data = word_line.split('"')[1]
         word_string += word_line_data
         line_length = len(word_line_data)
 
+    # print the word ranges just because
     for word, range in word_ranges.items():
         print(word, word_string[range[0] : range[1]], (range[0], range[1]))
 
     with open("./generated/word_data.json", mode="w+", encoding="utf-8") as outfile:
         json.dump(
             {
+                # the words that the word clock should display, formatted as one
+                # unbroken string:
                 "word_string": word_string,
+                # the line length that `word_string` should be wrapped at:
                 "line_length": line_length,
+                # the start and end position of each word within word_string:
                 "word_ranges": word_ranges,
             },
             outfile,
