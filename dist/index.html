@@ -44,6 +44,10 @@
       import curiousFred from "./curious.fred.json" with {type: 'json'};
 
       /**
+       * @type {Record<string, [number, number]>}
+       */
+      const wordRanges = wordData.word_ranges;
+      /**
        * @type {HTMLCanvasElement}
        */
       const clock = document.getElementById("clock");
@@ -63,24 +67,28 @@
 
       function currentTimeToWords() {
           // TODO: implement this to return a string array of words to emphasize
+          // https://github.com/a2-4am/word-clock/blob/main/src/ui.display.a
+          return ["kPre1", "kNoon", "kMidnight"];
       }
-
 
       /**
        * @param activeWords {string[]}
       */
       function drawWords(activeWords) {
-          // TODO: implement this to draw the string array of words to the clock canvas
           const ctx = clock.getContext("2d");
           ctx.imageSmoothingEnabled = false;
           ctx.fillStyle = "black";
           ctx.fillRect(0, 0, clock.width, clock.height);
 
-          ctx.fillStyle = "blue";
-
           for (let row = 0; row < rows; ++row) {
               for (let col = 0; col < cols; ++col) {
-                  const letter = words[row * cols + col];
+                  const letterPos = row * cols + col;
+                  const inActiveWords = activeWords.some(word => {
+                    const ranges = wordRanges[word];
+                    return letterPos >= ranges[0] && letterPos < ranges[1];
+                  });
+                  ctx.fillStyle = inActiveWords ? 'white' : '#1990ff';
+                  const letter = words[letterPos];
                   /**
                    * @type {string}
                    */
@@ -94,7 +102,7 @@
                           x = baseX;
                           ++y;
                       } else {
-                          if (px !== ' ') {
+                          if (px !== ' ' && (inActiveWords || y % 2 === (baseY % 2))) {
                               ctx.fillRect(x, y, 1, 1);
                           }
                           ++x;
@@ -103,8 +111,8 @@
               }
           }
       }
-
-      drawWords([]);
+      drawWords(currentTimeToWords());
+      setInterval(() => drawWords(currentTimeToWords()), 1000);
     </script>
   </head>
 
