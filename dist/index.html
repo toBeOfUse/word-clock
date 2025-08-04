@@ -14,34 +14,83 @@
         height: 100vh;
       }
 
-      /* idk why the canvas overflows slightly without this */
       canvas {
         display: block;
+        width: 100vw;
+        height: 100vh;
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
       }
     </style>
     <script type="module">
       import wordData from "./word_data.json" with {type: 'json'};
       import curiousFred from "./curious.fred.json" with {type: 'json'};
 
+      /**
+       * @type {HTMLCanvasElement}
+       */
       const clock = document.getElementById("clock");
-      // TODO: resize listener
-      clock.width = document.body.clientWidth;
-      clock.height = document.body.clientHeight;
+      /**
+       * @type {string}
+       */
+      const words = wordData.word_string;
+      /**
+       * @type {number}
+       */
+      const cols = wordData.line_length;
+      const rows = words.length / cols;
+      const letterSize = 14;
+      clock.width = cols * letterSize;
+      clock.height = rows * letterSize + (rows - 1);
 
-      function currentTimeToWords(){
-        // TODO: implement this to return a string array of words to emphasize
+
+      function currentTimeToWords() {
+          // TODO: implement this to return a string array of words to emphasize
       }
 
-      function drawWords(words) {
-        // TODO: implement this to draw the string array of words to the clock canvas
-        const ctx = clock.getContext("2d");
-        ctx.fill = "black";
-        ctx.fillRect(0, 0, clock.width, clock.height);
+
+      /**
+       * @param activeWords {string[]}
+      */
+      function drawWords(activeWords) {
+          // TODO: implement this to draw the string array of words to the clock canvas
+          const ctx = clock.getContext("2d");
+          ctx.imageSmoothingEnabled = false;
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, clock.width, clock.height);
+
+          ctx.fillStyle = "blue";
+
+          for (let row = 0; row < rows; ++row) {
+              for (let col = 0; col < cols; ++col) {
+                  const letter = words[row * cols + col];
+                  /**
+                   * @type {string}
+                   */
+                  const letterPixels = curiousFred[letter.toUpperCase()];
+                  const baseX = col * letterSize;
+                  const baseY = row * (letterSize + 1);
+                  let x = baseX;
+                  let y = baseY;
+                  for (const px of letterPixels) {
+                      if (px === '\n') {
+                          x = baseX;
+                          ++y;
+                      } else {
+                          if (px !== ' ') {
+                              ctx.fillRect(x, y, 1, 1);
+                          }
+                          ++x;
+                      }
+                  }
+              }
+          }
       }
 
       drawWords([]);
     </script>
   </head>
+
   <body>
     <canvas id="clock"></canvas>
   </body>
