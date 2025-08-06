@@ -77,7 +77,8 @@ export function drawFrame(
     activeWords,
     prevWords = [],
     msSincePrevWords = 0,
-    clock = document.getElementById("clock")
+    clock = document.getElementById("clock"),
+    drawAll = drawingFirstFrame
 ) {
     const fizzleLengthMs = 2000;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
@@ -92,10 +93,9 @@ export function drawFrame(
     const cols = wordData.line_length;
     const rows = words.length / cols;
     const letterSize = 14;
-    if (drawingFirstFrame) {
+    if (drawAll) {
         // upsettingly, setting the width and height appears to clear the
-        // canvas, so it can only be done on the first frame without redrawing
-        // everything
+        // canvas, so it can only be done if one is redrawing everything
         clock.width = cols * letterSize;
         clock.height = rows * letterSize + (rows - 1);
     }
@@ -116,14 +116,14 @@ export function drawFrame(
 
             // not changing this letter if this isn't the first frame and it
             // isn't either transitioning to active or transitioning to inactive
-            if (!drawingFirstFrame && !(inActiveWords || inPrevWords)) {
+            if (!drawAll && !(inActiveWords || inPrevWords)) {
                 continue;
             }
 
             const baseX = col * letterSize;
             // +1 to account for the one blank row above each letter
             const baseY = row * (letterSize + 1);
-            if (!drawingFirstFrame) {
+            if (!drawAll) {
                 // clear the space with the letter in it so that it can be
                 // redrawn
                 ctx.clearRect(baseX, baseY, letterSize, letterSize);
