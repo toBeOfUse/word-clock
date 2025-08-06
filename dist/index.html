@@ -18,7 +18,13 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: black;
+        background: #212121;
+        background: radial-gradient(
+          circle,
+          rgb(34, 34, 34) 0%,
+          rgb(8, 8, 8) 50%,
+          rgb(0, 0, 0) 100%
+        );
       }
 
       canvas#clock {
@@ -39,81 +45,7 @@
         }
       }
     </style>
-    <script type="module">
-      import wordData from "./word_data.json" with {type: 'json'};
-      import curiousFred from "./curious.fred.json" with {type: 'json'};
-
-      /**
-       * @type {Record<string, [number, number]>}
-       */
-      const wordRanges = wordData.word_ranges;
-      /**
-       * @type {HTMLCanvasElement}
-       */
-      const clock = document.getElementById("clock");
-      /**
-       * @type {string}
-       */
-      const words = wordData.word_string;
-      /**
-       * @type {number}
-       */
-      const cols = wordData.line_length;
-      const rows = words.length / cols;
-      const letterSize = 14;
-      clock.width = cols * letterSize;
-      clock.height = rows * letterSize + (rows - 1);
-
-
-      function currentTimeToWords() {
-          // TODO: implement this to return a string array of words to emphasize
-          // https://github.com/a2-4am/word-clock/blob/main/src/ui.display.a
-          return ["kPre1", "kNoon", "kMidnight"];
-      }
-
-      /**
-       * @param activeWords {string[]}
-      */
-      function drawWords(activeWords) {
-          const ctx = clock.getContext("2d");
-          ctx.imageSmoothingEnabled = false;
-          ctx.fillStyle = "black";
-          ctx.fillRect(0, 0, clock.width, clock.height);
-
-          for (let row = 0; row < rows; ++row) {
-              for (let col = 0; col < cols; ++col) {
-                  const letterPos = row * cols + col;
-                  const inActiveWords = activeWords.some(word => {
-                    const ranges = wordRanges[word];
-                    return letterPos >= ranges[0] && letterPos < ranges[1];
-                  });
-                  ctx.fillStyle = inActiveWords ? 'white' : '#1990ff';
-                  const letter = words[letterPos];
-                  /**
-                   * @type {string}
-                   */
-                  const letterPixels = curiousFred[letter.toUpperCase()];
-                  const baseX = col * letterSize;
-                  const baseY = row * (letterSize + 1);
-                  let x = baseX;
-                  let y = baseY;
-                  for (const px of letterPixels) {
-                      if (px === '\n') {
-                          x = baseX;
-                          ++y;
-                      } else {
-                          if (px !== ' ' && (inActiveWords || y % 2 === (baseY % 2))) {
-                              ctx.fillRect(x, y, 1, 1);
-                          }
-                          ++x;
-                      }
-                  }
-              }
-          }
-      }
-      drawWords(currentTimeToWords());
-      setInterval(() => drawWords(currentTimeToWords()), 1000);
-    </script>
+    <script type="module" src="index.js"></script>
   </head>
 
   <body>
