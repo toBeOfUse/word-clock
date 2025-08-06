@@ -1,3 +1,9 @@
+"""
+I wrote this whole script to parse the assembly in ui.font.curious.fred.data.a
+and reverse-engineer the font before realizing that it's plainly spelled out in
+https://github.com/a2-4am/word-clock/blob/main/res/Curious%20Fred/font.txt ;-;
+"""
+
 import json
 from collections import defaultdict
 
