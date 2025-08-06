@@ -75,8 +75,13 @@ testCurrentTimeToWords();
 
 /**
  * @param activeWords {string[]}
+ * @param prevWords {string[]}
 */
-function drawWords(activeWords) {
+function drawFrame(activeWords, prevWords = [], msSincePrevWords = 0) {
+
+    const fizzleLengthMs = 2000;
+    const fizzleProgress = msSincePrevWords / fizzleLengthMs;
+
     /**
       * @type {HTMLCanvasElement}
       */
@@ -102,11 +107,13 @@ function drawWords(activeWords) {
     for (let row = 0; row < rows; ++row) {
         for (let col = 0; col < cols; ++col) {
             const letterPos = row * cols + col;
-            const inActiveWords = activeWords.some(word => {
+            const inWord = word => {
                 const ranges = wordRanges[word];
                 return letterPos >= ranges[0] && letterPos < ranges[1];
-            });
-            ctx.fillStyle = inActiveWords ? 'white' : '#1990ff';
+            };
+            const inActiveWords = activeWords.some(inWord);
+            const inPrevWords = prevWords.some(inWord);
+
             const letter = words[letterPos];
             /**
              * @type {string}
@@ -117,11 +124,19 @@ function drawWords(activeWords) {
             let x = baseX;
             let y = baseY;
             for (const px of letterPixels) {
+                const treatAsActive = (
+                    (inActiveWords || inPrevWords) &&
+                    ((inActiveWords && inPrevWords) || (
+                        inActiveWords && Math.random() < fizzleProgress ||
+                        inPrevWords && Math.random() > fizzleProgress
+                    ))
+                );
+                ctx.fillStyle = treatAsActive ? 'white' : '#1990ff';
                 if (px === '\n') {
                     x = baseX;
                     ++y;
                 } else {
-                    if (px !== ' ' && (inActiveWords || y % 2 === (baseY % 2))) {
+                    if (px !== ' ' && (treatAsActive || y % 2 === (baseY % 2))) {
                         ctx.fillRect(x, y, 1, 1);
                     }
                     ++x;
@@ -149,11 +164,20 @@ window.set = (input) => {
     date = new Date(input);
 }
 
-// for some reason this doesn't seem to have an effect
-window.addEventListener('load', () => {
-    drawWords(currentTimeToWords(dateSet ? date : new Date()));
-});
+let prevWords = [];
+let currentWords = [];
+let changeTime = 0;
+function drawLoop() {
+    const newCurrentWords = currentTimeToWords(dateSet ? date : new Date());
+    const justChanged = newCurrentWords.some(word => !currentWords.includes(word));
+    if (justChanged) {
+        changeTime = Date.now();
+        prevWords = currentWords;
+        currentWords = newCurrentWords;
+    }
+    drawFrame(currentWords, prevWords, Date.now() - changeTime);
+}
 
 setInterval(() => {
-    drawWords(currentTimeToWords(dateSet ? date : new Date()));
-}, 1000);
+    drawLoop();
+}, 1000 / 15);
