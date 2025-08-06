@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Word Clock Test</title>
+    <style>
+      canvas {
+        width: auto;
+        height: 400px;
+        background-color: black;
+        image-rendering: crisp-edges;
+        image-rendering: pixelated;
+      }
+    </style>
+    <script type="module">
+      import { currentTimeToWords, drawFrame } from "./index.js";
+      for (let hour = 0; hour < 24; ++hour) {
+        for (let minute = 0; minute < 60; ++minute) {
+          const time = new Date();
+          time.setHours(hour, minute);
+          const p = document.createElement("p");
+          p.innerText = time.toLocaleTimeString("en-us", { timeStyle: "short" });
+          document.body.appendChild(p);
+          const canvas = document.createElement("canvas");
+          const words = currentTimeToWords(time);
+          drawFrame(words, words, 0, canvas);
+          canvas.style.marginBottom = "30px";
+          document.body.appendChild(canvas);
+        }
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

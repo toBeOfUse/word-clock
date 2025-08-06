@@ -6,7 +6,7 @@ import curiousFred from "./curious.fred.json" with {type: 'json'};
  */
 const wordRanges = wordData.word_ranges;
 
-function currentTimeToWords(time = new Date()) {
+export function currentTimeToWords(time = new Date()) {
     // https://github.com/a2-4am/word-clock/blob/main/src/ui.display.a
 
     const hour = time.getHours();
@@ -74,22 +74,19 @@ function testCurrentTimeToWords() {
 testCurrentTimeToWords();
 
 /**
+ * @type {string}
+ */
+const words = wordData.word_string;
+
+/**
  * @param activeWords {string[]}
  * @param prevWords {string[]}
+ * @param clock {HTMLCanvasElement}
 */
-function drawFrame(activeWords, prevWords = [], msSincePrevWords = 0) {
+export function drawFrame(activeWords, prevWords = [], msSincePrevWords = 0, clock = document.getElementById("clock")) {
 
     const fizzleLengthMs = 2000;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
-
-    /**
-      * @type {HTMLCanvasElement}
-      */
-    const clock = document.getElementById("clock");
-    /**
-     * @type {string}
-     */
-    const words = wordData.word_string;
     /**
      * @type {number}
      */
@@ -178,6 +175,8 @@ function drawLoop() {
     drawFrame(currentWords, prevWords, Date.now() - changeTime);
 }
 
-setInterval(() => {
-    drawLoop();
-}, 1000 / 15);
+export function startLoop() {
+    setInterval(() => {
+        drawLoop();
+    }, 1000 / 15);
+}
