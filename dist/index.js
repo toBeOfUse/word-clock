@@ -62,70 +62,88 @@ export function currentTimeToWords(time = new Date()) {
     return result;
 }
 
-function testCurrentTimeToWords() {
-    for (let hour = 0; hour < 24; ++hour) {
-        for (let minute = 0; minute < 60; ++minute) {
-            const results = currentTimeToWords(new Date(2025, 7, 5, hour, minute, 0, 0));
-            console.assert(results.every(r => (r in wordRanges)), results);
-        }
-    }
-}
-
-testCurrentTimeToWords();
-
 /**
  * @type {string}
  */
 const words = wordData.word_string;
 
+let drawingFirstFrame = true;
 /**
  * @param activeWords {string[]}
  * @param prevWords {string[]}
  * @param clock {HTMLCanvasElement}
 */
-export function drawFrame(activeWords, prevWords = [], msSincePrevWords = 0, clock = document.getElementById("clock")) {
-
+export function drawFrame(
+    activeWords,
+    prevWords = [],
+    msSincePrevWords = 0,
+    clock = document.getElementById("clock")
+) {
     const fizzleLengthMs = 2000;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
+
+    if (fizzleProgress > 1.1) {
+        return;
+    }
+
     /**
      * @type {number}
      */
     const cols = wordData.line_length;
     const rows = words.length / cols;
     const letterSize = 14;
-    clock.width = cols * letterSize;
-    clock.height = rows * letterSize + (rows - 1);
+    if (drawingFirstFrame) {
+        // upsettingly, setting the width and height appears to clear the
+        // canvas, so it can only be done on the first frame without redrawing
+        // everything
+        clock.width = cols * letterSize;
+        clock.height = rows * letterSize + (rows - 1);
+    }
 
     // console.log('drawing', activeWords, clock.width, clock.height);
     const ctx = clock.getContext("2d");
     ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, clock.width, clock.height);
 
     for (let row = 0; row < rows; ++row) {
         for (let col = 0; col < cols; ++col) {
             const letterPos = row * cols + col;
-            const inWord = word => {
+            const inWord = (word) => {
                 const ranges = wordRanges[word];
                 return letterPos >= ranges[0] && letterPos < ranges[1];
             };
             const inActiveWords = activeWords.some(inWord);
             const inPrevWords = prevWords.some(inWord);
 
+            // not changing this letter if this isn't the first frame and it
+            // isn't either transitioning to active or transitioning to inactive
+            if (!drawingFirstFrame && !(inActiveWords || inPrevWords)) {
+                continue;
+            }
+
+            const baseX = col * letterSize;
+            // +1 to account for the one blank row above each letter
+            const baseY = row * (letterSize + 1);
+            if (!drawingFirstFrame) {
+                // clear the space with the letter in it so that it can be
+                // redrawn
+                ctx.clearRect(baseX, baseY, letterSize, letterSize);
+            }
+
             const letter = words[letterPos];
+
             /**
              * @type {string}
              */
             const letterPixels = curiousFred[letter.toUpperCase()];
-            const baseX = col * letterSize;
-            const baseY = row * (letterSize + 1);
             let x = baseX;
             let y = baseY;
             for (const px of letterPixels) {
+                const fuzz = Math.random();
                 const treatAsActive = (
                     (inActiveWords || inPrevWords) &&
                     ((inActiveWords && inPrevWords) || (
-                        inActiveWords && Math.random() < fizzleProgress ||
-                        inPrevWords && Math.random() > fizzleProgress
+                        inActiveWords && (fuzz < fizzleProgress) ||
+                        inPrevWords && (fuzz > fizzleProgress)
                     ))
                 );
                 ctx.fillStyle = treatAsActive ? 'white' : '#1990ff';
@@ -141,6 +159,7 @@ export function drawFrame(activeWords, prevWords = [], msSincePrevWords = 0, clo
             }
         }
     }
+    drawingFirstFrame = false;
 }
 
 let date = new Date();
