@@ -106,7 +106,7 @@ export function drawFrame(
     clock = document.getElementById("clock"),
     drawAll = drawingFirstFrame
 ) {
-    const fizzleLengthMs = 3000;
+    const fizzleLengthMs = 2250;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
 
     if (fizzleProgress > 1.1) {
