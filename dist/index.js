@@ -182,16 +182,20 @@ window.set = (input) => {
 
 let prevWords = [];
 let currentWords = [];
-let changeTime = 0;
+let timeOfLastChange = 0;
+let startTime = Date.now();
 function drawLoop() {
-    const newCurrentWords = currentTimeToWords(dateSet ? date : new Date());
+    const msSinceStart = Date.now() - startTime;
+    const newCurrentWords = msSinceStart < 4000 ?
+        ["kWord", "kClock", "kBy", "kPost4", "kAM"] :
+        currentTimeToWords(dateSet ? date : new Date());
     const justChanged = newCurrentWords.some(word => !currentWords.includes(word));
     if (justChanged) {
-        changeTime = Date.now();
+        timeOfLastChange = Date.now();
         prevWords = currentWords;
         currentWords = newCurrentWords;
     }
-    drawFrame(currentWords, prevWords, Date.now() - changeTime);
+    drawFrame(currentWords, prevWords, Date.now() - timeOfLastChange);
 }
 
 export function startLoop() {
