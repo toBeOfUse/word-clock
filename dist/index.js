@@ -67,7 +67,33 @@ export function currentTimeToWords(time = new Date()) {
  */
 const words = wordData.word_string;
 
+/**
+ * @type {number}
+ */
+const cols = wordData.line_length;
+const rows = words.length / cols;
+const letterSize = 14;
+const widthPx = cols * letterSize;
+// adding (rows - 1) to account for a blank line between each row of letters
+const heightPx = rows * letterSize + (rows - 1);
+
+/**
+ * random two-dimensional array of numbers between 0 and 1; one for each pixel
+ * in the canvas. this is used to figure out how far into each fizzle transition
+ * each pixel should switch to its new state
+ * @type {number[][]}
+ */
+const pixelFizzleThresholds = [];
+for (let y = 0; y < heightPx; ++y) {
+    const rowThresholds = [];
+    for (let x = 0; x < widthPx; ++x) {
+        rowThresholds.push(Math.random());
+    }
+    pixelFizzleThresholds.push(rowThresholds);
+}
+
 let drawingFirstFrame = true;
+let drawingFirstFizzle = true;
 /**
  * @param activeWords {string[]}
  * @param prevWords {string[]}
@@ -80,24 +106,19 @@ export function drawFrame(
     clock = document.getElementById("clock"),
     drawAll = drawingFirstFrame
 ) {
-    const fizzleLengthMs = 2000;
+    const fizzleLengthMs = 3000;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
 
     if (fizzleProgress > 1.1) {
+        drawingFirstFizzle = false;
         return;
     }
 
-    /**
-     * @type {number}
-     */
-    const cols = wordData.line_length;
-    const rows = words.length / cols;
-    const letterSize = 14;
     if (drawAll) {
         // upsettingly, setting the width and height appears to clear the
         // canvas, so it can only be done if one is redrawing everything
-        clock.width = cols * letterSize;
-        clock.height = rows * letterSize + (rows - 1);
+        clock.width = widthPx;
+        clock.height = heightPx;
     }
 
     // console.log('drawing', activeWords, clock.width, clock.height);
@@ -116,7 +137,7 @@ export function drawFrame(
 
             // not changing this letter if this isn't the first frame and it
             // isn't either transitioning to active or transitioning to inactive
-            if (!drawAll && !(inActiveWords || inPrevWords)) {
+            if (!drawAll && !(inActiveWords || inPrevWords || drawingFirstFizzle)) {
                 continue;
             }
 
@@ -138,12 +159,13 @@ export function drawFrame(
             let x = baseX;
             let y = baseY;
             for (const px of letterPixels) {
-                const fuzz = Math.random();
+                const fizzleThreshold = pixelFizzleThresholds[y][x];
+                const drawAtAll = !drawingFirstFizzle || (fizzleThreshold < fizzleProgress);
                 const treatAsActive = (
                     (inActiveWords || inPrevWords) &&
                     ((inActiveWords && inPrevWords) || (
-                        inActiveWords && (fuzz < fizzleProgress) ||
-                        inPrevWords && (fuzz > fizzleProgress)
+                        inActiveWords && (fizzleThreshold < fizzleProgress) ||
+                        inPrevWords && (fizzleThreshold > fizzleProgress)
                     ))
                 );
                 ctx.fillStyle = treatAsActive ? 'white' : '#1990ff';
@@ -151,7 +173,7 @@ export function drawFrame(
                     x = baseX;
                     ++y;
                 } else {
-                    if (px !== ' ' && (treatAsActive || y % 2 === (baseY % 2))) {
+                    if (px !== ' ' && drawAtAll && (treatAsActive || y % 2 === (baseY % 2))) {
                         ctx.fillRect(x, y, 1, 1);
                     }
                     ++x;
