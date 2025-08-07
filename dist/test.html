@@ -23,7 +23,7 @@
           document.body.appendChild(p);
           const canvas = document.createElement("canvas");
           const words = currentTimeToWords(time);
-          drawFrame(words, words, 0, canvas, true);
+          drawFrame(words, words, 10000, canvas, true);
           canvas.style.marginBottom = "30px";
           document.body.appendChild(canvas);
           // unblock so the page doesn't appear to freeze

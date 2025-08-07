@@ -92,7 +92,6 @@ for (let y = 0; y < heightPx; ++y) {
     pixelFizzleThresholds.push(rowThresholds);
 }
 
-let drawingFirstFrame = true;
 let drawingFirstFizzle = true;
 /**
  * @param activeWords {string[]}
@@ -104,26 +103,25 @@ export function drawFrame(
     prevWords = [],
     msSincePrevWords = 0,
     clock = document.getElementById("clock"),
-    drawAll = drawingFirstFrame
 ) {
     const fizzleLengthMs = 2250;
     const fizzleProgress = msSincePrevWords / fizzleLengthMs;
 
     if (fizzleProgress > 1.1) {
         drawingFirstFizzle = false;
-        return;
     }
 
-    if (drawAll) {
-        // upsettingly, setting the width and height appears to clear the
-        // canvas, so it can only be done if one is redrawing everything
-        clock.width = widthPx;
-        clock.height = heightPx;
-    }
+    clock.width = widthPx;
+    clock.height = heightPx;
+
 
     // console.log('drawing', activeWords, clock.width, clock.height);
     const ctx = clock.getContext("2d");
     ctx.imageSmoothingEnabled = false;
+
+    // setting the canvas' width and height appears to clear it anyway, but just
+    // in case
+    ctx.clearRect(0, 0, widthPx, heightPx);
 
     for (let row = 0; row < rows; ++row) {
         for (let col = 0; col < cols; ++col) {
@@ -135,20 +133,9 @@ export function drawFrame(
             const inActiveWords = activeWords.some(inWord);
             const inPrevWords = prevWords.some(inWord);
 
-            // not changing this letter if this isn't the first frame and it
-            // isn't either transitioning to active or transitioning to inactive
-            if (!drawAll && !(inActiveWords || inPrevWords || drawingFirstFizzle)) {
-                continue;
-            }
-
             const baseX = col * letterSize;
             // +1 to account for the one blank row above each letter
             const baseY = row * (letterSize + 1);
-            if (!drawAll) {
-                // clear the space with the letter in it so that it can be
-                // redrawn
-                ctx.clearRect(baseX, baseY, letterSize, letterSize);
-            }
 
             const letter = words[letterPos];
 
@@ -181,7 +168,6 @@ export function drawFrame(
             }
         }
     }
-    drawingFirstFrame = false;
 }
 
 let date = new Date();
